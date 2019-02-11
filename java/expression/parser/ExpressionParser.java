@@ -82,7 +82,7 @@ public class ExpressionParser implements Parser {
             expression.removeFirst();
             Result cur = plusMinus(expression);
             if (cur.rest.isEmpty() || cur.rest.first() != ')') {
-                System.err.println("Not close bracket " + cur.rest);
+                System.err.println("No close bracket " + cur.rest);
                 System.exit(0);
             }
             expression.removeFirst();

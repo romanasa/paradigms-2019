@@ -10,7 +10,7 @@ public class ExpressionParser implements Parser {
         ExpressionString expression = new ExpressionString(expressionSpace);
         Result result = plusMinus(expression);
         if (!result.rest.isEmpty()) {
-            throw new Exception("Can't full parse: " + result.rest);
+            throw new Exception("Can't full parse, remain: " + result.rest);
         }
         return result.accumulator;
     }
@@ -79,13 +79,13 @@ public class ExpressionParser implements Parser {
 
     private Result bracket(ExpressionString expression) throws Exception {
         if (expression.isEmpty()) {
-            throw new Exception("Can't full parse: " + expression);
+            throw new Exception("Expected value, found: " + expression);
         }
         if (expression.first() == '(') {
             expression.removeFirst();
             Result cur = plusMinus(expression);
             if (cur.rest.isEmpty() || cur.rest.first() != ')') {
-                throw new Exception("Not close bracket " + cur.rest);
+                throw new Exception("Expected close bracket found: " + cur.rest);
             }
             expression.removeFirst();
             return cur;
@@ -99,7 +99,10 @@ public class ExpressionParser implements Parser {
             return num(expression);
         }
         if (name != 'x' && name != 'y' && name != 'z') {
-            throw new Exception("Unknown variable: " + expression);
+            if (Character.isLetter(name)) {
+                throw new Exception("Unknown variable: " + expression);
+            }
+            throw new Exception("Expected value, found: " + expression);
         }
         expression.removeFirst();
         return new Result(new Variable(Character.toString(name)), expression);
@@ -124,7 +127,7 @@ public class ExpressionParser implements Parser {
             int val = cur.evaluate(0, 0, 0);
             return new Result(new Const(val), expression);
         } catch (Exception e) {
-            throw new Exception("Too big constant: " + e.getMessage());
+            throw new Exception("Constant too big: " + e.getMessage());
         }
     }
 }

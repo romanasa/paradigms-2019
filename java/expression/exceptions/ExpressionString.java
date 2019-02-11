@@ -6,7 +6,13 @@ class ExpressionString {
 
     @Override
     public String toString() {
-        return s.substring(pos);
+        StringBuilder out = new StringBuilder();
+        out.append(s);
+        out.append('\n');
+        for (int i = 0; i < pos; i++) out.append('-');
+        out.append('^');
+        for (int i = pos + 1; i < s.length(); i++) out.append('-');
+        return (isEmpty() ? "end of string" : s.substring(pos)) + "\n" + out;
     }
 
     ExpressionString(String s) {
