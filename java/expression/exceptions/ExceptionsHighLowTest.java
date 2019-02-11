@@ -25,9 +25,11 @@ public class ExceptionsHighLowTest extends ExceptionsTest {
                 op("high()", "high()"),
                 op("high(1, 2)", "high(1, 2)"),
                 op("abb 1", "abb 1"),
+                op("abb 1", "abb 1"),
                 op("high *", "high *"),
                 op("highx", "highx"),
-                op("highx 10", "highx 10")
+                op("highx 10", "highx 10"),
+                op("lоw 4", "lоw 4")
         ));
     }
 
