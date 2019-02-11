@@ -49,6 +49,16 @@ public class ExceptionsTest extends ParserTest {
             op("Constant overflow 2", Integer.MAX_VALUE + 1L + "")
     ));
 
+    public static Op<String> parseExample(final String hello) {
+        return op(hello, hello);
+    }
+
+    protected void addParsingTests(final String... examples) {
+        for (final String example : examples) {
+            parsingTest.add(parseExample(example));
+        }
+    }
+
     public static void main(final String[] args) {
         new ExceptionsTest().run();
     }
