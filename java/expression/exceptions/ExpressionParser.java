@@ -3,6 +3,7 @@ package expression.exceptions;
 import expression.TripleExpression;
 import expression.Const;
 import expression.Variable;
+import sun.plugin.net.protocol.jar.CachedJarURLConnection;
 
 public class ExpressionParser implements Parser {
 
@@ -10,7 +11,7 @@ public class ExpressionParser implements Parser {
         ExpressionString expression = new ExpressionString(expressionSpace);
         Result result = plusMinus(expression);
         if (!result.rest.isEmpty()) {
-            throw new Exception("Can't full parse, remain: " + result.rest);
+            throw new Exception("Can't full parse, expected + or -, found: " + result.rest);
         }
         return result.accumulator;
     }
@@ -120,7 +121,7 @@ public class ExpressionParser implements Parser {
             if (!Character.isDigit(expression.first())) {
                 break;
             }
-            int digit = (expression.first() - '0') * sign;
+            int digit = Character.getNumericValue(expression.first()) * sign;
             cur = new CheckedAdd(new CheckedMultiply(cur, new Const(10)), new Const(digit));
         }
         try {

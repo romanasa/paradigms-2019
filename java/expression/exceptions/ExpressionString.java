@@ -6,12 +6,14 @@ class ExpressionString {
 
     @Override
     public String toString() {
-        StringBuilder out = new StringBuilder();
-        out.append(s);
-        out.append('\n');
-        for (int i = 0; i < pos; i++) out.append('-');
+        StringBuilder out = new StringBuilder(s).append('\n');
+        for (int i = 0; i < pos; i++) {
+            out.append('-');
+        }
         out.append('^');
-        for (int i = pos + 1; i < s.length(); i++) out.append('-');
+        for (int i = pos + 1; i < s.length(); i++) {
+            out.append('-');
+        }
         return (isEmpty() ? "end of string" : s.substring(pos)) + "\n" + out;
     }
 
@@ -59,14 +61,7 @@ class ExpressionString {
     }
 
     private boolean has(String operator) {
-        if (pos + operator.length() <= s.length()) {
-            for (int i = 0; i < operator.length(); i++) {
-                if (s.charAt(pos + i) != operator.charAt(i)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
+        int right = pos + operator.length();
+        return right <= s.length() && s.substring(pos, right).equals(operator);
     }
 }
