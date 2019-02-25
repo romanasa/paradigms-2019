@@ -38,10 +38,11 @@ public class Md2HtmlAllTest extends Md2HtmlTest {
         if ("[".equals(type)) {
             final StringBuilder in = new StringBuilder();
             final StringBuilder out = new StringBuilder();
+
+            final boolean removed = markup.remove("![");
             generate(markup, in, out);
 
             final StringBuilder href = new StringBuilder();
-            final boolean removed = markup.remove("![");
             generate(markup, href, new StringBuilder());
             if (removed) {
                 markup.add("![");
