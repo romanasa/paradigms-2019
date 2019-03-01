@@ -34,7 +34,8 @@ public class ExceptionsHighLowTest extends ExceptionsTest {
                 "high *",
                 "highx",
                 "highx 10",
-                "lоw 4"
+                "lоw 4",
+                "hi gh 8"
         );
     }
 

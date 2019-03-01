@@ -5,21 +5,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
-public class MainChecker {
-    public static final String ENCODING = "utf8";
+public class MainChecker extends Randomized {
     private final Method method;
     protected final TestCounter counter = new TestCounter();
-    public final Random random = new Random(8045702385702345702L);
 
     public MainChecker(final String className) {
         try {
@@ -38,9 +36,9 @@ public class MainChecker {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final PrintStream oldOut = System.out;
         try {
-            System.setOut(new PrintStream(out, false, ENCODING));
+            System.setOut(new PrintStream(out, false, StandardCharsets.UTF_8));
             method.invoke(null, new Object[]{input});
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), ENCODING));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray()), StandardCharsets.UTF_8));
             final List<String> result = new ArrayList<>();
             while (true) {
                 final String line = reader.readLine();
@@ -85,11 +83,14 @@ public class MainChecker {
         counter.passed();
     }
 
+    public void printStatus(final Class<?> clazz) {
+        counter.printStatus(clazz);
+    }
     public void printStatus() {
-        counter.printStatus(getClass());
+        printStatus(getClass());
     }
 
     protected static void write(final String file, final String contents) throws IOException {
-        Files.write(Paths.get(file), contents.getBytes("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(Paths.get(file), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 }
