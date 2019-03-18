@@ -2,6 +2,128 @@
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/paradigms/homeworks.html)
 
+## Домашнее задание 5. Объектные выражения на JavaScript
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `objectExpression.js`.
+    * [Исходный код тестов](javascript/jstest/object/ObjectExpressionTest.java)
+        * Запускать c аргументом `easy`, `hard` или `bonus`.
+ * *ArcTan*. Дополнительно реализовать поддержку:
+    * функций:
+        * `ArcTan` (`atan`) — арктангенс, `1256 atan` примерно равно 1.57;
+        * `ArcTan2` (`atan2`) — арктангенс, `841 540 atan2` примерно равно 1;
+    * [Исходный код тестов](javascript/jstest/object/ObjectArcTanTest.java)
+
+
+## Исходный код к лекциям по JavaScript
+
+[Скрипт с примерами](javascript/examples.js)
+
+Запуск примеров
+ * [В браузере](javascript/RunJS.html)
+ * Из консоли
+    * [на Java](javascript/RunJS.java): [RunJS.cmd](javascript/RunJS.cmd), [RunJS.sh](javascript/RunJS.sh)
+    * [на node.js](javascript/RunJS.node.js): `node RunJS.node.js`
+
+Лекция 1. Типы и функции
+ * [Типы](javascript/examples/1_1_types.js)
+ * [Функции](javascript/examples/1_2_functions.js)
+ * [Функции высшего порядка](javascript/examples/1_3_functions-hi.js).
+   Обратите внимание на реализацию функции `mCurry`.
+
+Лекция 2. Объекты и методы
+ * [Объекты](javascript/examples/2_1_objects.js)
+ * [Замыкания](javascript/examples/2_2_closures.js)
+ * [Модули](javascript/examples/2_3_modules.js)
+ * [Пример: стеки](javascript/examples/2_4_stacks.js)
+
+
+## Домашнее задание 4. Функциональные выражения на JavaScript
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `functionalExpression.js`.
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalExpressionTest.java)
+        * Запускать c аргументом `hard` или `easy`;
+ * *PieAvgMed*. Дополнительно реализовать поддержку:
+    * переменных: `y`, `z`;
+    * констант:
+        * `pi` — π;
+        * `e` — основание натурального логарифма;
+    * операций:
+        * `avg5` — арифметическое среднее пяти аргументов, `1 2 3 4 5 avg5` равно 7.5;
+        * `med3` — медиана трех аргументов, `1 2 -10 med3` равно 1.
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalPieAvgMedTest.java)
+        * Запускать c аргументом `hard`
+ * *Variables*. Дополнительно реализовать поддержку:
+    * переменных: `y`, `z`;
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalVariablesTest.java)
+        * Запускать c аргументом `easy`
+ * *OneIffAbs*. Дополнительно реализовать поддержку:
+    * переменных: `y`, `z`;
+    * констант:
+        * `one` — 1;
+        * `two` — 2;
+    * операций:
+        * `abs` — абсолютное значение, `-2 abs` равно 2;
+        * `iff` — условный выбор:
+            если первый аргумент неотрицательный,
+            вернуть второй аргумент,
+            иначе вернуть первый третий аргумент.
+            * `iff one two 3` равно 2
+            * `iff -1 -2 -3` равно -3
+            * `iff 0 one two` равно 1;
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalOneIffAbsTest.java)
+        * Запускать c аргументом `hard`
+ * *IffAbs*. Дополнительно реализовать поддержку:
+    * переменных: `y`, `z`;
+    * операций:
+        * `abs` — абсолютное значение, `-2 abs` равно 2;
+        * `iff` — условный выбор:
+            если первый аргумент неотрицательный,
+            вернуть второй аргумент,
+            иначе вернуть первый третий аргумент:
+            * `iff 1 2 3` равно 2
+            * `iff -1 -2 -3` равно -3
+            * `iff 0 1 2` равно 1;
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalIffAbsTest.java)
+        * Запускать c аргументом `hard`
+ * *OneTwo*. Дополнительно реализовать поддержку:
+    * переменных: `y`, `z`;
+    * констант:
+        * `one` — 1;
+        * `two` — 2;
+    * [Исходный код тестов](javascript/jstest/functional/FunctionalOneTwoTest.java)
+        * Запускать c аргументом `easy`
+
+
+Запуск тестов
+ * Для запуска тестов используется [GraalVM](https://www.graalvm.org/)
+ * Для запуска тестов можно использовать скрипты [TestJS.cmd](javascript/TestJS.cmd) и [TestJS.sh](javascript/TestJS.sh)
+    * Репозиторий должен быть скачан целиком.
+    * Скрипты должны находиться в каталоге `javascript` (их нельзя перемещать, но можно вызывать из других каталогов).
+ * Для самостоятельно запуска из консоли необходимо использовать командную строку вида:
+    `java -ea -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --module-path=<js>/graal --upgrade-module-path=<js>/graal/compiler.jar --class-path <js> jstest.functional.FunctionalExpressionTest {hard|easy}`, где
+    * `-ea` – включение проверок времени исполнения;
+    * `-XX:+UnlockExperimentalVMOptions` и `-XX:+EnableJVMCI` – опции необходимые для запуска Graal;
+    * `--module-path=<js>/graal` путь к модулям Graal (здесь и далее `<js>` путь к каталогу `javascript` этого репозитория);
+    * `--upgrade-module-path=<js>/graal/compiler.jar` путь к JIT-компилятору Graal;
+    * `--class-path <js>` путь к откомпилированным тестам;
+    * {`hard`|`easy`} указание тестируемой модификации.
+ * При запуске из IDE, обычно не требуется указывать `--class-path`, так как он формируется автоматически.
+   Остальные опции все равно необходимо указать.
+ * Troubleshooting
+    * `Error occurred during initialization of boot layer java.lang.module.FindException: Module org.graalvm.truffle not found, required by jdk.internal.vm.compiler` – неверно указан `--module-path`;
+    * `ScriptEngineManager providers.next(): javax.script.ScriptEngineFactory: Provider com.oracle.truffle.js.scriptengine.GraalJSEngineFactory could not be instantiated` – неверно указан `--upgrade-module-path` или не указана опция `-XX:+EnableJVMCI`;
+    * `Graal.js not found` – неверно указаны `--module-path` и `--upgrade-module-path`
+    * `Error: Could not find or load main class jstest.functional.FunctionalExpressionTest` – неверно указан `--class-path`;
+    * `Error: Could not find or load main class <other class>` – неверно указано полное имя класса теста;
+    * `Exception in thread "main" java.lang.AssertionError: You should enable assertions by running 'java -ea jstest.functional.FunctionalExpressionTest'` – не указана опция `-ea`;
+    * `Error: VM option 'EnableJVMCI' is experimental and must be enabled via -XX:+UnlockExperimentalVMOptions.` – не указана опция `-XX:+UnlockExperimentalVMOptions`;
+    * `First argument should be one of: "easy", "hard", found: XXX` – неверно указана сложность;
+    * `Exception in thread "main" jstest.EngineException: Script 'functionalExpression.js' not found` – в текущем каталоге отсутствует решение (`functionalExpression.js`)
+
 
 ## Домашнее задание 3. Вычисление в различных типах
 
@@ -22,6 +144,28 @@
           Если значение не определено (например, по причине переполнения),
           то соответствующий элемент должен быть равен `null`.
     * [Исходный код тестов](java/expression/generic/GenericTest.java)
+ * *AsmUfb*
+    * Дополнительно реализовать унарные операции:
+        * `abs` — модуль числа, `abs -5` равно 5;
+        * `square` — возведение в квадрат, `square 5` равно 25.
+    * Дополнительно реализовать бинарную операцию (максимальный приоритет):
+        * `mod` — взятие по модулю, приоритет как у умножения (`1 + 5 mod 3` равно `1 + (5 mod 3)` равно `3`).
+    * Дополнительно реализовать поддержку режимов:
+        * `u` — вычисления в `int` без проверки на переполнение;
+        * `f` — вычисления в `float` без проверки на переполнение;
+        * `b` — вычисления в `byte` без проверки на переполнение.
+    * [Исходный код тестов](java/expression/generic/GenericAsmUfbTest.java)
+ * *Ls*
+    * Дополнительно реализовать поддержку режимов:
+        * `l` — вычисления в `long` без проверки на переполнение;
+        * `s` — вычисления в `short` без проверки на переполнение.
+    * [Исходный код тестов](java/expression/generic/GenericLsTest.java)
+ * *Ufb*
+    * Дополнительно реализовать поддержку режимов:
+        * `u` — вычисления в `int` без проверки на переполнение;
+        * `f` — вычисления в `float` без проверки на переполнение;
+        * `b` — вычисления в `byte` без проверки на переполнение.
+    * [Исходный код тестов](java/expression/generic/GenericUfbTest.java)
 
 
 ## Домашнее задание 2. Markdown to HTML
