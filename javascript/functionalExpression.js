@@ -8,15 +8,13 @@ let constants = {
 
 const cnst = c => () => (c);
 
-let pi = cnst(Math.PI);
-let e = cnst(Math.E);
+const pi = cnst(Math.PI);
+const e = cnst(Math.E);
 
 let variable = (name) => {
     const id = ids[name];
     return (...args) => args[id];
 };
-
-
 
 const op = (f) => {
     return (...args) => (...values) => f(...args.map(curf => curf(...values)));
@@ -28,8 +26,7 @@ let multiply = op((a, b) => (a * b));
 let divide = op((a, b) => (a / b));
 let negate = op((a) => (-a));
 
-
-let med3 = op( function(...args) {
+let med3 = op(function (...args) {
     args.sort((a, b) => a - b);
     let ind = Math.floor(args.length / 2);
     return args[ind];
@@ -39,7 +36,7 @@ let avg5 = op(function (...args) {
     return args.reduce((a, b) => a + b) / args.length;
 });
 
-let parse = function(expression) {
+let parse = function (expression) {
     let st = [];
     let ops = {
         '+': {f: add, len: 2}, '-': {f: subtract, len: 2},
@@ -47,7 +44,6 @@ let parse = function(expression) {
         'negate': {f: negate, len: 1},
         'avg5': {f: avg5, len: 5}, 'med3': {f: med3, len: 3}
     };
-
     for (const elem of expression.split(' ').filter(word => word.length > 0)) {
         if (elem in ops) {
             let curlen = ops[elem].len;
