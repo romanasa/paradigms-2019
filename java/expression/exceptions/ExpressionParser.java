@@ -3,7 +3,6 @@ package expression.exceptions;
 import expression.TripleExpression;
 import expression.Const;
 import expression.Variable;
-import sun.plugin.net.protocol.jar.CachedJarURLConnection;
 
 public class ExpressionParser implements Parser {
 
@@ -117,7 +116,10 @@ public class ExpressionParser implements Parser {
             sign = -1;
             expression.removeFirst();
         }
-        for (; !expression.isEmpty(); expression.removeFirst()) {
+        if (expression.isEmpty()) {
+            throw new Exception("Expected digits, found: " + expression);
+        }
+        for (; !expression.isEmpty(); expression.removeFirstWithoutSkip()) {
             if (!Character.isDigit(expression.first())) {
                 break;
             }
@@ -126,6 +128,7 @@ public class ExpressionParser implements Parser {
         }
         try {
             int val = cur.evaluate(0, 0, 0);
+            expression.skip();
             return new Result(new Const(val), expression);
         } catch (Exception e) {
             throw new Exception("Constant too big: " + e.getMessage());

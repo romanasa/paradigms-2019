@@ -6,14 +6,10 @@ class ExpressionString {
 
     @Override
     public String toString() {
-        StringBuilder out = new StringBuilder(s).append('\n');
-        for (int i = 0; i < pos; i++) {
-            out.append('-');
-        }
-        out.append('^');
-        for (int i = pos + 1; i < s.length(); i++) {
-            out.append('-');
-        }
+        String out = s + '\n' +
+                "-".repeat(Math.max(0, pos)) +
+                '^' +
+                "-".repeat(Math.max(0, s.length() - (pos + 1)));
         return (isEmpty() ? "end of string" : s.substring(pos)) + "\n" + out;
     }
 
@@ -31,7 +27,7 @@ class ExpressionString {
         return s.charAt(pos + 1);
     }
 
-    private void skip() {
+    void skip() {
         while (pos < s.length() && Character.isWhitespace(s.charAt(pos))) {
             pos++;
         }
@@ -40,6 +36,10 @@ class ExpressionString {
     void removeFirst() {
         pos++;
         skip();
+    }
+
+    void removeFirstWithoutSkip() {
+        pos++;
     }
 
     void removeFirst(int len) {
