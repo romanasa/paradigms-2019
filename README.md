@@ -2,6 +2,150 @@
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/paradigms/homeworks.html)
 
+
+## Домашнее задание 9. Объектные выражения на Clojure
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `expression.clj`.
+    * [Исходный код тестов](clojure/cljtest/object/ClojureObjectExpressionTest.java)
+        * Запускать c аргументом `easy` или `hard`
+
+
+## Домашнее задание 8. Функциональные выражения на Clojure
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `expression.clj`.
+    * [Исходный код тестов](clojure/cljtest/functional/ClojureFunctionalExpressionTest.java)
+        * Запускать c аргументом `easy` или `hard`
+ * *Модификация*. Дополнительно реализовать поддержку:
+    * унарных операций:
+        * `square` (`square`) — возведение в квадрат, `(square 3)` равно 9;
+        * `sqrt` (`sqrt`) — извлечение квадратного корня из модуля аргумента, `(sqrt -9)` равно 3.
+    * [Исходный код тестов](clojure/cljtest/functional/ClojureFunctionalSquareSqrtTest.java)
+ * *Модификация*. Дополнительно реализовать поддержку:
+    * операций:
+        * `min` (`min`) — минимум, `(min 1 2 6)` равно 1;
+        * `max` (`max`) — максимум, `(min 1 2 6)` равно 6;
+    * [Исходный код тестов](clojure/cljtest/functional/ClojureFunctionalMinMaxTest.java)
+        * Запускать c аргументом `easy` или `hard`
+
+
+## Домашнее задание 7. Линейная алгебра на Clojure
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `linear.clj`.
+    * Исходный код тестов
+        * [Простой вариант](clojure/cljtest/linear/LinearBinaryTest.java)
+        * [Сложный вариант](clojure/cljtest/linear/LinearNaryTest.java)
+ * *Shapeless*
+    * Добавьте операции поэлементного сложения (`s+`),
+        вычитания (`s-`) и умножения (`s*`) чисел и
+        векторов любой (в том числе, переменной) формы.
+        Например, `(s+ [[1 2] 3] [[4 5] 6])` должно быть равно `[[5 7] 9]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearShapelessTest.java)
+ * *Tensor*
+    * Назовем _тензором_ многомерную прямоугольную таблицу чисел.
+    * Добавьте операции поэлементного сложения (`t+`),
+        вычитания (`t-`) и умножения (`t*`) тензоров.
+        Например, `(s+ [[1 2] [3 4]] [[5 6] [7 8]])` должно быть равно `[[6 8] [10 12]]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearTensorTest.java)
+ * *Broadcast*
+    * Назовем _тензором_ многомерную прямоугольную таблицу чисел.
+    * _Форма_ тензора – последовательность чисел
+        (_s_<sub>1..n</sub>)=(_s_<sub>1</sub>, _s_<sub>2</sub>, …, _s<sub>n</sub>_), где
+        _n_ – размерность тензора, а _s<sub>i</sub>_ – число элементов
+        по _i_-ой оси.
+      Например, форма тензора `[ [ [2 3 4] [5 6 7] ] ]`  равна (1, 2, 3),
+      а форма `1` равна ().
+    * Тензор формы (_s_<sub>1.._n_</sub>) может быть _распространен_ (broadcast)
+      до тензора формы (_u_<sub>1.._m_</sub>), если (_s_<sub>i.._n_</sub>) является
+      суффиксом (_u<sub>1..m</sub>_). Для этого, исходный тензор копируется
+      по недостающим осям.
+      Например, распространив тензор `[ [2] [3] ]` формы (2, 1) до
+      формы (3, 2, 1) получим `[ [ [2] [3] ] [ [2] [3] ] [ [2] [3] ] ]`,
+      а распространив `1` до формы (2, 3) получим `[ [1 1 1] [1 1 1] ]`.
+    * Тензоры называются совместимыми, если один из них может быть распространен
+      до формы другого.
+      Например, тензоры формы (3, 2, 1) и (2, 1) совместимы, а
+      (3, 2, 1) и (1, 2) – нет. Числа совместимы с тензорами любой формы.
+    * Добавьте операции поэлементного сложения (`b+`),
+      вычитания (`b-`) и умножения (`b*`) совместимых тензоров.
+      Если формы тензоров не совпадают, то тензоры меньшей размерности
+      должны быть предварительно распространены до тензоров большей размерности.
+      Например, `(b+ 1 [ [10 20 30] [40 50 60] ] [100 200 300] )` должно
+      быть равно `[ [111 221 331] [141 251 361] ]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearBroadcastTest.java)
+
+
+## Исходный код к лекциям по Clojure
+
+Запуск Clojure
+ * Консоль: [Windows](clojure/RunClojure.cmd), [*nix](clojure/RunClojure.sh)
+    * Интерактивный: `RunClojure`
+    * С выражением: `RunClojure --eval "<выражение>"`
+    * Скрипт: `RunClojure <файл скрипта>`
+    * Справка: `RunClojure --help`
+ * IDE
+    * IntelliJ Idea: [плагин Cursive](https://cursive-ide.com/userguide/)
+    * Eclipse: [плагин Counterclockwise](https://doc.ccw-ide.org/documentation.html)
+
+[Скрипт со всеми примерами](clojure/examples.clj)
+
+Лекция 1. Функции
+ * [Введение](clojure/examples/1_1_intro.clj)
+ * [Функции](clojure/examples/1_2_functions.clj)
+ * [Списки](clojure/examples/1_3_lists.clj)
+ * [Вектора](clojure/examples/1_4_vectors.clj)
+ * [Функции высшего порядка](clojure/examples/1_5_functions-2.clj)
+
+Лекция 2. Внешний мир
+ * [Ввод-вывод](clojure/examples/2_1_io.clj)
+ * [Разбор и гомоиконность](clojure/examples/2_2_read.clj)
+ * [Порядки вычислений](clojure/examples/2_3_evaluation-orders.clj)
+ * [Потоки](clojure/examples/2_4_streams.clj)
+ * [Отображения и множества](clojure/examples/2_5_maps.clj)
+
+
+## Домашнее задание 6. Обработка ошибок на JavaScript
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `objectExpression.js`.
+    * [Исходный код тестов](javascript/jstest/prefix/PrefixParserTest.java)
+        * Запускать c аргументом `easy` или `hard`
+ * *PrefixSumexpSoftmax*. Дополнительно реализовать поддержку:
+    * операций произвольного числа аргументов:
+        * `Sumexp` (`sumexp`) — сумма экспонент, `(8 8 9)` примерно равно 14065;
+        * `Softmax` (`softmax`) — softmax первого аргумента, `(softmax 1 2 3)` примерно равно 9;
+    * [Исходный код тестов](javascript/jstest/prefix/PrefixSumexpSoftmaxTest.java)
+ * *PostfixSumexpSoftmax*. Дополнительно реализовать поддержку:
+    * выражений в постфиксной записи: `(2 3 +)` равно 5
+    * унарных операций:
+        * `Sumexp` (`sumexp`) — сумма экспонент, `(8 8 9 sumexp)` примерно равно 14065;
+        * `Softmax` (`softmax`) — softmax первого аргумента, `(1 2 3 softmax)` примерно 9;
+    * [Исходный код тестов](javascript/jstest/prefix/PostfixSumexpSoftmaxTest.java)
+ * *PrefixSumAvg*. Дополнительно реализовать поддержку:
+    * операций произвольного числа аргументов:
+        * `Sum` (`sum`) — сумма, `(sum 1 2 3)` равно 6;
+        * `Avg` (`avg`) — арифметическое среднее, `(avg 1 2 3)` равно 2;
+    * [Исходный код тестов](javascript/jstest/prefix/PrefixSumAvgTest.java)
+ * *PostfixSumAvg*. Дополнительно реализовать поддержку:
+    * выражений в постфиксной записи: `(2 3 +)` равно 5
+    * унарных операций:
+        * `Sum` (`sum`) — сумма, `(1 2 3 sum)` равно 6;
+        * `Avg` (`avg`) — арифметическое среднее, `(1 2 3 avg)` равно 2;
+    * [Исходный код тестов](javascript/jstest/prefix/PostfixSumAvgTest.java)
+ * *PostfixSumsqLength*. Дополнительно реализовать поддержку:
+    * выражений в постфиксной записи: `(2 3 +)` равно 5
+    * унарных операций:
+        * `Sumsq` (`sumsq`) — сумма квадратов, `(1 2 3 sumsq)` равно 14;
+        * `Length` (`length`у) — длина вектора, `(3 4 length)` равно 5;
+    * [Исходный код тестов](javascript/jstest/prefix/PostfixSumsqLengthTest.java)
+
+
 ## Домашнее задание 5. Объектные выражения на JavaScript
 
 Модификации
@@ -14,6 +158,16 @@
         * `ArcTan` (`atan`) — арктангенс, `1256 atan` примерно равно 1.57;
         * `ArcTan2` (`atan2`) — арктангенс, `841 540 atan2` примерно равно 1;
     * [Исходный код тестов](javascript/jstest/object/ObjectArcTanTest.java)
+ * *MinMax*. Дополнительно реализовать поддержку:
+    * функций:
+        * `Min3` (`min3`) — минимум из трех аргументов, `1 2 3 min` равно 1;
+        * `Max5` (`max5`) — максимум из пяти аргументов, `1 2 3 4 5 max` равно 5;
+    * [Исходный код тестов](javascript/jstest/object/ObjectMinMaxTest.java)
+ * *SinhCosh*. Дополнительно реализовать поддержку:
+    * унарных функций:
+        * `Sinh` (`sinh`) — гиперболический синус, `3 sinh` немного больше 10;
+        * `Cosh` (`cosh`) — гиперболический косинус, `3 cosh` немного меньше 10;
+    * [Исходный код тестов](javascript/jstest/object/ObjectSinhCoshTest.java)
 
 
 ## Исходный код к лекциям по JavaScript
@@ -38,6 +192,12 @@
  * [Модули](javascript/examples/2_3_modules.js)
  * [Пример: стеки](javascript/examples/2_4_stacks.js)
 
+Лекция 3. Другие возможности
+ * [Обработка ошибок](javascript/examples/3_1_errors.js)
+ * [Чего нет в JS](javascript/examples/3_2_no.js)
+ * [Стандартная библиотека](javascript/examples/3_3_builtins.js)
+ * [Работа со свойствами](javascript/examples/3_4_properties.js)
+ * [JS 6+](javascript/examples/3_5_js6.js)
 
 ## Домашнее задание 4. Функциональные выражения на JavaScript
 

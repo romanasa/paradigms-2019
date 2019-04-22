@@ -59,12 +59,12 @@ public class JSEngine implements Engine {
             engine.eval("expr = " + expression);
             this.expression = expression;
         } catch (final ScriptException e) {
-            throw new EngineException("Script error", e);
+            throw new EngineException("Parse error for " + expression, e);
         }
     }
 
     private <T> Result<T> evaluate(final String code, final Class<T> token) {
-        final String context = String.format("\n    in %s\n    where expr = %s\n", code, expression);
+        final String context = String.format("%n    in %s%n    where expr = %s%n", code, expression);
         try {
             final Object result = engine.eval(code);
             if (result == null) {

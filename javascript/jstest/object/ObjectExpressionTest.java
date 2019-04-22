@@ -101,7 +101,7 @@ public class ObjectExpressionTest extends BaseJavascriptTest<JSEngine> {
                         final double expected = (
                                 test.answer.evaluate(i + di, j + dj, k + dk) -
                                         test.answer.evaluate(i - di, j - dj, k - dk)) / D / 2;
-                        evaluate(new double[]{i, j, k}, expected, 1e-5);
+                        evaluate(new double[]{i, j, k}, expected, EPS);
                     }
                 }
             }
