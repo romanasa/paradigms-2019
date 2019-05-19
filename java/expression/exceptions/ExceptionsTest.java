@@ -93,7 +93,7 @@ public class ExceptionsTest extends ParserTest {
                 final long expected = f.applyAsLong(a, b);
                 try {
                     final int actual = expression.evaluate(a, b, 0);
-                    assert actual == expected : a + " " + op + " " + b + " == " + actual;
+                    assert actual == expected : a + " " + op + " " + b + " == " + actual + ", expected: " + expected;
                 } catch (final Exception e) {
                     if (Integer.MIN_VALUE <= expected && expected <= Integer.MAX_VALUE) {
                         throw new AssertionError("Unexpected error in " + a + " " + op + " " + b, e);

@@ -17,7 +17,8 @@ public class ExceptionsHighLowTest extends ExceptionsTest {
                 op("low 18", (x, y, z) -> 2),
                 op("low x * y * z", (x, y, z) -> low(x) * y * z),
                 op("low(x * y * z)", (x, y, z) -> low(x * y * z)),
-                op("high(x + y + z)", (x, y, z) -> high(x + y + z))
+                op("high(x + y + z)", (x, y, z) -> high(x + y + z)),
+                op("৪", (x, y, z) -> 4)
         ));
         addParsingTests(
                 "hello",
