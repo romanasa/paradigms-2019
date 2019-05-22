@@ -1,15 +1,17 @@
 (defn equal-len? [& vs] (apply == (mapv count vs)))
+(defn numbers? [& ns] (every? number? ns))
 
-(defn numbers? [& vs] (every? number? vs))
+(defn shape? [v] (and (seq? v) (apply numbers? v)))
 
-(defn vector-1d? [v] (and (vector? v) (every? number? v)))
+(defn vector-1d? [v] (and (vector? v) (apply numbers? v)))
 (defn vectors-1d? [& vs] (every? vector-1d? vs))
 
-(defn matrix? [m] (and (vector? m) (not (empty? m)) (every? vectors-1d? m) (apply equal-len? m)))
+(defn matrix? [m] (and (vector? m) (every? vectors-1d? m) (apply equal-len? m)))
 (defn matrices? [& ms] (every? matrix? ms))
 
-(defn equal-types? [& ts] (or (every? vectors-1d? ts) (every? matrices? ts)))
-(defn suffix? [a b] (and (vectors-1d? a b) (<= (count a) (count b)) (= (drop (- (count b) (count a)) b) a)))
+(defn equal-cols? [& ms] (apply == (mapv (fn [x] (count (x 0))) ms)))
+
+(defn suffix? [a b] (and (shape? a) (shape? b) (= (drop (- (count b) (count a)) b) a)))
 
 (defn tensor? [t]
   (if (or (number? t) (vector-1d? t)) true
@@ -17,20 +19,16 @@
   )
 (defn tensors? [& ts] (every? tensor? ts))
 
-(defn apply-vv [op] (fn [& vs]
-                      {:pre [(apply vectors-1d? vs) (apply equal-len? vs)]}
+(defn apply-op [op predicate?] (fn [& vs]
+                      {:pre [(apply predicate? vs) (apply equal-len? vs)]}
                       (apply mapv op vs)))
 
-(defn apply-mm [op] (fn [& ms]
-                      {:pre [(apply matrices? ms) (apply equal-len? ms)]}
-                      (apply mapv op ms)))
-
-(def v+ (apply-vv +))
-(def v- (apply-vv -))
-(def v* (apply-vv *))
+(def v+ (apply-op + vectors-1d?))
+(def v- (apply-op - vectors-1d?))
+(def v* (apply-op * vectors-1d?))
 
 (defn scalar [& vs]
-  {:pre [(apply vectors-1d? vs)]}
+  {:pre [(apply vectors-1d? vs) (apply equal-len? vs)]}
   (apply + (apply v* vs)))
 
 (defn det [a b c d] (- (* a d) (* b c)))
@@ -39,37 +37,41 @@
   ([v] {:pre [(vector-1d? v)]} v)
   ([v u]
    {:pre [(vectors-1d? v u) (== (count v) 3) (equal-len? v u)]}
-   (vector (det (v 1) (v 2) (u 1) (u 2))
+   [ (det (v 1) (v 2) (u 1) (u 2))
            (- (det (v 0) (v 2) (u 0) (u 2)))
-           (det (v 0) (v 1) (u 0) (u 1))
-           ))
+           (det (v 0) (v 1) (u 0) (u 1))]
+    )
   ([v u & vs]
-   (apply vect (vect v u) vs))
+   {:pre [(apply vectors-1d? v u vs) (apply equal-len? v u vs) (== (count v) 3)]}
+   (reduce vect (vect v u) vs))
   )
 
-(def m+ (apply-mm v+))
-(def m- (apply-mm v-))
-(def m* (apply-mm v*))
+(def m+ (apply-op v+ matrices?))
+(def m- (apply-op v- matrices?))
+(def m* (apply-op v* matrices?))
 
-(defn t*s [op] (fn apply-vs
-                 ([t] {:pre [(or (vector-1d? t) (matrix? t))]} t)
-                 ([t s]
-                  {:pre [(or (vector-1d? t) (matrix? t)) (number? s)]}
-                  (mapv (fn [x] (op x s)) t))
-                 ([t s & ss]
-                  (apply apply-vs (apply-vs t s) ss))
-                 ))
+(defn t*s [op predicate?]
+  (fn *s
+    ([t] {:pre [(predicate? t)]} t)
+    ([t s]
+     {:pre [(predicate? t) (number? s)]}
+     (mapv (fn [elem] (op elem s)) t))
+    ([t s & ss]
+     {:pre [(predicate? t) (apply numbers? s ss)]}
+     (reduce *s (*s t s) ss))
+    ))
 
-(def v*s (t*s *))
-(def m*s (t*s v*s))
+(def v*s (t*s * vector-1d?))
+(def m*s (t*s v*s matrix?))
 
 (defn m*v
   ([m] {:pre [matrix? m]} m)
   ([m v]
-   {:pre [(matrix? m) (vector-1d? v)]}
-   (mapv (fn [row] (scalar row v)) m)
-    )
-  ([m v & vs] (apply m*v (m*v m v) vs))
+   {:pre [(matrix? m) (vector-1d? v) (== (count (m 0)) (count v))]}
+   (mapv (fn [row] (scalar row v)) m))
+  ([m v & vs]
+   {:pre [(matrix? m) (vector-1d? v) (apply == (count (m 0)) (count v) (mapv count vs))]}
+   (reduce m*v (m*v m v) vs))
   )
 
 (defn transpose [m] {:pre [(matrix? m)]} (apply mapv vector m))
@@ -77,18 +79,18 @@
 (defn m*m
   ([m] {:pre [(matrix? m)]} m)
   ([m n] {:pre [(matrices? m n) (== (count (m 0)) (count n))]} (mapv (fn [row] (mapv (fn [col] (scalar row col)) (transpose n))) m))
-  ([m n & ms] (apply m*m (m*m m n) ms))
+  ([m n & ms] {:pre [(apply matrices? m n ms)]} (reduce m*m (m*m m n) ms))
   )
 
 (defn shape [t]
   {:pre [(tensor? t)]}
-  (if (number? t) []
-                  (vec (cons (count t) (shape (t 0))))))
+  (if (number? t) ()
+                  (cons (count t) (shape (t 0)))))
 
-(defn broadcast [t s]
-  {:pre [(tensor? t) (vector-1d? s) (suffix? (shape t) s)]}
-  (if (equal-len? (shape t) s) t
-                               (vec (repeat (first s) (broadcast t (vec (rest s))))))
+
+(defn broadcast [t s step]
+  (if (== step 0) t
+                  (vec (repeat (first s) (broadcast t (rest s) (dec step)))))
   )
 
 (defn new-operation [op]
@@ -111,12 +113,14 @@
      {:pre [(tensor? t)]}
      ((get new-operations op) t))
     ([t w]
-     {:pre [(tensors? t w) (or (suffix? (shape t) (shape w)) (suffix? (shape w) (shape t)))]}
-     (cond
-       (suffix? (shape t) (shape w)) ((get new-operations op) (broadcast t (shape w)) w)
-       (suffix? (shape w) (shape t)) ((get new-operations op) t (broadcast w (shape t)))
+     (let [st (shape t) sw (shape w)]
+       {:pre [(tensors? t w) (or (suffix? st sw) (suffix? sw st))]}
+       (cond
+         (suffix? st sw) ((get new-operations op) (broadcast t sw (- (count sw) (count st))) w)
+         (suffix? sw st) ((get new-operations op) t (broadcast w st (- (count st) (count sw))))
+         )
        ))
-    ([t w & ts] (apply operation-tt (operation-tt t w) ts))
+    ([t w & ts] {:pre [(apply tensors? t w ts)]} (reduce operation-tt (operation-tt t w) ts))
     )
   )
 
