@@ -22,10 +22,11 @@ Const.prototype.diff = function () {
 
 function Variable(name) {
     this.name = name;
+    this.id = ids[name];
 }
 
 Variable.prototype.evaluate = function (...args) {
-    return args[ids[this.name]];
+    return args[this.id];
 };
 Variable.prototype.toString = Variable.prototype.prefix = Variable.prototype.postfix = function () {
     return this.name;
@@ -34,19 +35,21 @@ Variable.prototype.diff = function (name) {
     return this.name === name ? ONE : ZERO;
 };
 
-const vars = {
-    'x': new Variable('x'), 'y': new Variable('y'), 'z': new Variable('z')
-};
+const vars = {};
+for (const name in ids) {
+    vars[name] = new Variable(name);
+}
 
-function Operation(f, name, diffObject, ...objects) {
-    this.f = f;
+let Operations = {};
+
+function Operation(f, name, diffOp, ...objects) {
+    Operations[name] = { f : f, diffOp : diffOp };
     this.objects = objects;
     this.name = name;
-    this.diffObject = diffObject;
 }
 
 Operation.prototype.evaluate = function (...args) {
-    return this.f(...this.objects.map(elem => elem.evaluate(...args)));
+    return Operations[this.name].f(...this.objects.map(elem => elem.evaluate(...args)));
 };
 Operation.prototype.toString = function () {
     return this.objects.join(" ") + " " + this.name;
@@ -58,14 +61,12 @@ Operation.prototype.postfix = function () {
     return "(" + this.objects.map(elem => elem.postfix()).join(" ") + " " + this.name + ")";
 };
 Operation.prototype.diff = function (name) {
-    return this.diffObject(...this.objects, ...this.objects.map(elem => elem.diff(name)));
+    return Operations[this.name].diffOp(...this.objects, ...this.objects.map(elem => elem.diff(name)));
 };
 
-function newOperation(op, name, diffOp) {
-    return function (...args) {
-        return new Operation(op, name, diffOp, ...args);
-    };
-}
+const newOperation = (op, name, diffOp) => function (...args) {
+    return new Operation(op, name, diffOp, ...args);
+};
 
 const Add = newOperation((a, b) => a + b, "+", (a, b, da, db) => new Add(da, db));
 const Subtract = newOperation((a, b) => a - b, "-", (a, b, da, db) => new Subtract(da, db));
@@ -122,9 +123,9 @@ let parse = function (expression) {
     let st = [];
     for (const elem of expression.split(" ").filter(word => word.length > 0)) {
         if (elem in ops) {
-            let curLen = ops[elem].len;
-            let cur = st.splice(-curLen, curLen);
-            st.push(new ops[elem].Op(...cur));
+            const {len: len, Op: Op} = ops[elem];
+            let cur = st.splice(-len);
+            st.push(new Op(...cur));
         } else if (elem in vars) {
             st.push(vars[elem]);
         } else {
@@ -142,7 +143,7 @@ ParseException.prototype = Error.prototype;
 
 const parser = (mode) => {
     let source;
-    let pos = 0;
+    let pos;
     const END = String.fromCharCode(0);
 
     const Modes = {
@@ -151,7 +152,7 @@ const parser = (mode) => {
     };
 
     function isDigit(c) {
-        return c !== " " && !isNaN(c);
+        return /[0-9]/.test(c);
     }
 
     function isWhiteSpace(c) {
@@ -167,22 +168,22 @@ const parser = (mode) => {
     }
 
     function skip() {
-        while (isWhiteSpace(read())) {
+        while (isWhiteSpace(get())) {
             pos++;
         }
     }
 
-    function skipNumber(number) {
-        pos += number;
+    function skipPositions(cnt) {
+        pos += cnt;
         skip();
     }
 
-    function read() {
+    function get() {
         return source.charAt(pos);
     }
 
     function readNext() {
-        let res = read();
+        let res = get();
         pos++;
         return res;
     }
@@ -208,12 +209,8 @@ const parser = (mode) => {
         return res;
     }
 
-    function checkOperator(op) {
-        return testString(op) && !(op === "-" && isDigit(nextCharacter()));
-    }
-
     function testOperator() {
-        return Object.keys(ops).some(checkOperator);
+        return Object.keys(ops).some(testString);
     }
 
     function testString(s) {
@@ -254,7 +251,7 @@ const parser = (mode) => {
         return [op, cnt, args];
     }
 
-    function token() {
+    function call() {
         if (!testNext("(")) {
             expect("opening bracket");
         }
@@ -273,28 +270,24 @@ const parser = (mode) => {
 
     function operator() {
         for (const op in ops) {
-            if (checkOperator(op)) {
-                skipNumber(op.length);
+            if (testString(op)) {
+                skipPositions(op.length);
                 return op;
             }
         }
         expect("operator");
     }
 
+    const unaryOps = {"negate": Negate, "atan": ArcTan};
+
     function unary() {
-        let cur;
-        if (testString("negate")) {
-            skipNumber(6);
-            cur = unary();
-            cur = new Negate(cur);
-        } else if (testString("atan")) {
-            skipNumber(4);
-            cur = unary();
-            cur = new ArcTan(cur);
-        } else {
-            cur = bracket();
+        for (let op in unaryOps) {
+            if (testString(op)) {
+                skipPositions(op.length);
+                return new unaryOps[op](unary());
+            }
         }
-        return cur;
+        return bracket();
     }
 
     function bracket() {
@@ -302,24 +295,24 @@ const parser = (mode) => {
             expect("value");
         }
         if (test("(")) {
-            return token();
+            return call();
         }
         return variable();
     }
 
     function variable() {
-        if (test("-") || isDigit(read())) {
+        if (test("-") || isDigit(get())) {
             return num();
         }
         if (test("x") || test("y") || test("z")) {
             let name = readNext();
-            if (isAlpha(read())) {
+            if (isAlpha(get())) {
                 throw new ParseException("Unknown variable: " + source.substr(pos));
             }
             skip();
             return new Variable(name);
         }
-        if (isAlpha(read())) {
+        if (isAlpha(get())) {
             throw new ParseException("Unknown variable: " + source.substr(pos));
         }
         expect("value");
@@ -327,8 +320,8 @@ const parser = (mode) => {
 
     function readDigits() {
         let cur = "";
-        while (isDigit(read())) {
-            cur += read();
+        while (isDigit(get())) {
+            cur += get();
             pos++;
         }
         skip();
@@ -336,37 +329,25 @@ const parser = (mode) => {
     }
 
     function num() {
-        let sign = 1;
-        if (testNext("-")) {
-            sign = -1;
+        const sign = testNext("-") ? "-" : "";
+        let digits = readDigits();
+        if (digits.length === 0) {
+            expect("digits");
         }
-        let curd = readDigits();
-        return new Const(Number.parseInt(curd) * sign);
+        return new Const(Number.parseFloat(sign + digits));
     }
 
-    function parse(expression) {
+    return expression => {
         pos = 0;
         source = expression + END;
         skip();
 
-        let cur;
-        try {
-            cur = unary(true);
-            if (test(END)) {
-                return cur;
-            }
-        } catch (e) {
-        }
-
-        pos = 0;
-        cur = token();
+        let cur = test("(") ? call() : unary();
         if (!test(END)) {
             expect("end of text");
         }
         return cur;
-    }
-
-    return parse;
+    };
 };
 
 const parsePrefix = parser("prefix");
