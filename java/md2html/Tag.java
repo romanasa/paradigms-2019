@@ -29,10 +29,6 @@ public class Tag implements StringExpression {
         source = x;
     }
 
-    public boolean isEmpty() {
-        return f != null;
-    }
-
     public void evaluate() throws IOException {
         if (description == null) {
             source.writeString("<" + tag);

@@ -14,8 +14,4 @@ public class Const implements StringExpression {
         source.writeString(s);
     }
 
-    @Override
-    public boolean isEmpty() {
-        return s.isEmpty();
-    }
 }

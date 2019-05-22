@@ -14,9 +14,4 @@ public class Concatenate implements StringExpression {
         f.evaluate();
         s.evaluate();
     }
-
-    @Override
-    public boolean isEmpty() {
-        return f == null && s == null;
-    }
 }

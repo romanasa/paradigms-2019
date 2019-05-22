@@ -2,15 +2,25 @@ package md2html;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Md2Html {
     private static Md2HtmlSource source;
-    private static HashMap<Character, String> symbols = new HashMap<>();
-    private static HashMap<Character, String> tags = new HashMap<>();
+    private static Map<Character, String> symbols = Map.of(
+            '<', "&lt;",
+            '>', "&gt;",
+            '&', "&amp;"
+    );
+
+    private static Map<Character, String> tags = Map.of(
+            '*', "em",
+            '_', "em",
+            '`', "code",
+            '~', "mark",
+            '-', "s"
+    );
 
     public static void main(String[] args) throws IOException {
-        symbols.put('<', "&lt;"); symbols.put('>', "&gt;"); symbols.put('&', "&amp;");
-        tags.put('*', "em"); tags.put('_', "em"); tags.put('`', "code"); tags.put('~', "mark"); tags.put('-', "s");
         new Md2Html().parse(args);
     }
 
@@ -19,10 +29,9 @@ public class Md2Html {
         source.nextChar();
         source.skipSeparators();
 
-        parseParagraph();
         while (source.getChar() != Md2HtmlSource.END) {
-            source.skipSeparators();
             parseParagraph();
+            source.skipSeparators();
         }
         source.close();
     }
@@ -44,8 +53,8 @@ public class Md2Html {
             StringExpression s = parseLine("");
             curRes = new Tag(s, "h" + depth, source);
         }
-        curRes = new Concatenate(curRes, new Const(System.lineSeparator(), source));
         curRes.evaluate();
+        new Const(System.lineSeparator(), source).evaluate();
     }
 
     private StringExpression parseSimpleLine(boolean find) throws IOException {
@@ -163,7 +172,7 @@ public class Md2Html {
         return cur;
     }
 
-    private StringExpression parseSymbol()  {
+    private StringExpression parseSymbol() {
         if (test('-', '_', '*', '+')) {
             return new Const(Character.toString(source.getChar()), source);
         } else {
@@ -221,7 +230,7 @@ public class Md2Html {
         return cur;
     }
 
-    private boolean test(char ... c) {
+    private boolean test(char... c) {
         boolean f = false;
         for (char aC : c) {
             if (source.getChar() == aC) {
@@ -231,7 +240,7 @@ public class Md2Html {
         return f;
     }
 
-    private boolean notTest(char ... chars) {
+    private boolean notTest(char... chars) {
         for (char c : chars) {
             if (source.getChar() == c) {
                 return false;

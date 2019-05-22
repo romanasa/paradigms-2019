@@ -4,134 +4,155 @@ import expression.TripleExpression;
 import expression.Const;
 import expression.Variable;
 
+
 public class ExpressionParser implements Parser {
 
-    public TripleExpression parse(String expressionSpace) throws Exception {
-        ExpressionString expression = new ExpressionString(expressionSpace);
-        Result result = plusMinus(expression);
-        if (!result.rest.isEmpty()) {
-            throw new Exception("Can't full parse, expected + or -, found: " + result.rest);
+    private ExpressionSource source;
+
+    public TripleExpression parse(String expression) throws NumberException, ParseException {
+        source = new StringExpressionSource(expression);
+        source.nextChar();
+        skip();
+
+        TripleExpression result = plusMinus();
+        if (!test(ExpressionSource.END)) {
+            expect("end of text");
         }
-        return result.accumulator;
+        return result;
     }
 
-    private Result plusMinus(ExpressionString expression) throws Exception {
-        Result cur = mulDiv(expression);
-        while (!cur.rest.isEmpty()) {
-            if (cur.rest.first() != '+' && cur.rest.first() != '-') {
-                break;
-            }
-            char sign = cur.rest.first();
-            cur.rest.removeFirst();
+    private void expect(String message) throws ParseException {
+        throw source.error("Expected %s, found '%s", message, source.rest());
+    }
 
-            TripleExpression accumulator = cur.accumulator;
-            cur = mulDiv(cur.rest);
+    private void expect(String message, String add) throws ParseException {
+        throw source.error("Expected %s, found '%s", message, add + source.rest());
+    }
 
-            if (sign == '+') {
-                cur.accumulator = new CheckedAdd(accumulator, cur.accumulator);
+    private void skip() throws ParseException {
+        while (Character.isWhitespace(source.getChar())) {
+            source.nextChar();
+        }
+    }
+
+    private TripleExpression plusMinus() throws NumberException, ParseException {
+        TripleExpression result = mulDiv();
+        while (true) {
+            if (testNext('+')) {
+                result = new CheckedAdd(result, mulDiv());
+            } else if (testNext('-')) {
+                result = new CheckedSubtract(result, mulDiv());
             } else {
-                cur.accumulator = new CheckedSubtract(accumulator, cur.accumulator);
+                return result;
             }
         }
-        return cur;
     }
 
-    private Result mulDiv(ExpressionString expression) throws Exception {
-        Result cur = unary(expression);
-        while (!cur.rest.isEmpty()) {
-            if (cur.rest.first() != '*' && cur.rest.first() != '/') {
-                break;
-            }
-            char sign = cur.rest.first();
-            cur.rest.removeFirst();
-
-            TripleExpression accumulator = cur.accumulator;
-            cur = unary(cur.rest);
-
-            if (sign == '*') {
-                cur.accumulator = new CheckedMultiply(accumulator, cur.accumulator);
+    private TripleExpression mulDiv() throws NumberException, ParseException {
+        TripleExpression result = unary();
+        while (true) {
+            if (testNext('*')) {
+                result = new CheckedMultiply(result, unary());
+            } else if (testNext('/')){
+                result = new CheckedDivide(result, unary());
             } else {
-                cur.accumulator = new CheckedDivide(accumulator, cur.accumulator);
+                return result;
             }
         }
-        return cur;
     }
 
-    private Result unary(ExpressionString expression) throws Exception {
-        Result cur;
-        if (expression.hasTwo() && expression.first() == '-' && !Character.isDigit(expression.second())) {
-            expression.removeFirst();
-            cur = unary(expression);
-            cur.accumulator = new CheckedNegate(cur.accumulator);
-        } else if (expression.contains("high")) {
-            expression.removeFirst(4);
-            cur = unary(expression);
-            cur.accumulator = new CheckedHigh(cur.accumulator);
-        } else if (expression.contains("low")) {
-            expression.removeFirst(3);
-            cur = unary(expression);
-            cur.accumulator = new CheckedLow(cur.accumulator);
+    private TripleExpression unary() throws NumberException, ParseException {
+        if (testNext('-')) {
+            if (Character.isDigit(source.getChar())) {
+                return number("-");
+            } else {
+                return new CheckedNegate(unary());
+            }
+        } else if (test('h')) {
+            testStringNext("high");
+            return new CheckedHigh(unary());
+        } else if (test('l')) {
+            testStringNext("low");
+            return new CheckedLow(unary());
         } else {
-            cur = bracket(expression);
+            return bracket();
         }
-        return cur;
     }
 
-    private Result bracket(ExpressionString expression) throws Exception {
-        if (expression.isEmpty()) {
-            throw new Exception("Expected value, found: " + expression);
+    private TripleExpression bracket() throws NumberException, ParseException {
+        if (test(ExpressionSource.END)) {
+            expect("value");
         }
-        if (expression.first() == '(') {
-            expression.removeFirst();
-            Result cur = plusMinus(expression);
-            if (cur.rest.isEmpty() || cur.rest.first() != ')') {
-                throw new Exception("Expected close bracket found: " + cur.rest);
+        if (testNext('(')) {
+            TripleExpression result = plusMinus();
+            if (!testNext(')')) {
+                expect("closing bracket");
             }
-            expression.removeFirst();
-            return cur;
+            return result;
         }
-        return variable(expression);
+        return variable();
     }
 
-    private Result variable(ExpressionString expression) throws Exception {
-        char name = expression.first();
-        if (name == '-' || Character.isDigit(name)) {
-            return num(expression);
+    private TripleExpression variable() throws NumberException, ParseException {
+        if (test('-') || Character.isDigit(source.getChar())) {
+            return number(testNext('-') ? "-" : "");
         }
-        if (name != 'x' && name != 'y' && name != 'z') {
-            if (Character.isLetter(name)) {
-                throw new Exception("Unknown variable: " + expression);
-            }
-            throw new Exception("Expected value, found: " + expression);
+        if (!test('x') && !test('y') && !test('z')) {
+            expect("variable");
         }
-        expression.removeFirst();
-        return new Result(new Variable(Character.toString(name)), expression);
+        TripleExpression result = new Variable(Character.toString(source.getChar()));
+        source.nextChar();
+        skip();
+        return result;
     }
 
-    private Result num(ExpressionString expression) throws Exception {
-        int sign = 1;
-        TripleExpression cur = new Const(0);
+    private void readDigits(StringBuilder sb) throws ParseException {
+        do {
+            sb.append(source.getChar());
+        } while (Character.isDigit(source.nextChar()));
+        skip();
+    }
 
-        if (expression.first() == '-') {
-            sign = -1;
-            expression.removeFirst();
+    private TripleExpression number(String sign) throws NumberException, ParseException {
+        if (test(ExpressionSource.END)) {
+            expect("digits");
         }
-        if (expression.isEmpty()) {
-            throw new Exception("Expected digits, found: " + expression);
-        }
-        for (; !expression.isEmpty(); expression.removeFirstWithoutSkip()) {
-            if (!Character.isDigit(expression.first())) {
-                break;
-            }
-            int digit = Character.getNumericValue(expression.first()) * sign;
-            cur = new CheckedAdd(new CheckedMultiply(cur, new Const(10)), new Const(digit));
-        }
+        StringBuilder digits = new StringBuilder();
+        readDigits(digits);
         try {
-            int val = cur.evaluate(0, 0, 0);
-            expression.skip();
-            return new Result(new Const(val), expression);
-        } catch (Exception e) {
-            throw new Exception("Constant too big: " + e.getMessage());
+            return new Const(Integer.parseInt(sign + digits.toString()));
+        } catch (NumberFormatException e) {
+            throw new NumberException("Constant is too big: " + (sign + digits.toString()));
         }
+    }
+
+    private boolean testNext(char c) throws ParseException {
+        if (source.getChar() == c) {
+            source.nextChar();
+            skip();
+            return true;
+        }
+        return false;
+    }
+
+    private void testStringNext(String s) throws ParseException {
+        for (int i = 0; i < s.length(); i++) {
+            if (source.getChar() != s.charAt(i)) {
+                expect(s, s.substring(0, i));
+            }
+            source.nextChar();
+        }
+        if (Character.isLetterOrDigit(source.getChar())) {
+            expect(s, s);
+        }
+        skip();
+    }
+
+    private boolean test(char c) {
+        return source.getChar() == c;
+    }
+
+    public static void main(String[] args) throws Exception {
+        new ExpressionParser().parse("10");
     }
 }
